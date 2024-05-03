@@ -61,7 +61,7 @@ A better example in the file [main.c](main.c)
 
 ## Contributing
 
-Feel free to contibute [Open an issue](https://github.com/raiseFlaymeException/cfn/issues/new) or submit PRs.
+Feel free to contibute [Open an issue](https://github.com/raiseFlaymeException/c-for-noob/issues/new) or submit PRs.
 
 ## License
 
