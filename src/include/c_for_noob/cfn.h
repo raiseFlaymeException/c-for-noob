@@ -1,3 +1,7 @@
+// ZLIB - raiseFlaymeException
+//
+// see LICENSE for the license file
+
 #ifndef CFN_H
 #define CFN_H
 
@@ -7,19 +11,48 @@
 #include <stdlib.h>
 #include <string.h>
 
+// the cfn base capacity define it before including this file to change the default value
 #ifndef CFN_CAPTURE_PTR_CAP_BASE
 #define CFN_CAPTURE_PTR_CAP_BASE 16
 #endif
 
 struct {
-    FILE *out;
-    bool  print_malloc;
-    bool  print_calloc;
-    bool  print_realloc;
-    bool  print_free;
-    bool  capture_ptr;
-    bool  check_memory_leak_end;
+    FILE *out; // the file to write output to (defaulf stdout)
+    bool  print_malloc; // print every time we malloc (default true)
+    bool  print_calloc; // print every time we calloc (default true)
+    bool  print_realloc; // print every time we realloc (default true)
+    bool  print_free; // print every time we free (default true)
+    bool  capture_ptr; // capture the pointers info (need allocation and may be slow but help a lot for debugging) (default true)
+    bool  check_memory_leak_end; // check memory leak when cfn_quit is called (capture_ptr need to be true) (default true)
 } cfn_config;
+
+
+// don't _cfn_* functions manually
+void *_cfn_malloc(size_t size, const char *file, int line);
+void *_cfn_calloc(size_t size, size_t size_type, const char *file, int line);
+void *_cfn_realloc(void *old_mem, size_t size, const char *file, int line);
+void  _cfn_free(void *mem, const char *file, int line);
+
+// free the captured pointers
+void cfn_capture_ptr_free(void);
+
+// print the info in the captured pointers
+void cfn_print_capture_ptr(void);
+
+// check in the captured pointers if one is not freed
+void cfn_check_memory_leak(void);
+
+// create default config for cfn_config (see cfn_config for default value)
+void cfn_init_default_config();
+// deallocate stuff and check memory leak if cfn_config.check_memory_leak_end
+void cfn_quit();
+
+#ifdef CFN_IMPL
+#include <assert.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef struct {
     void       *mem;
@@ -28,32 +61,6 @@ typedef struct {
     size_t      line;
     size_t      size;
 } CdebugPtrInfo;
-
-void *cfn_malloc(size_t size, const char *file, int line);
-void *cfn_calloc(size_t size, size_t size_type, const char *file, int line);
-void *cfn_realloc(void *old_mem, size_t size, const char *file, int line);
-void  cfn_free(void *mem, const char *file, int line);
-
-void cfn_capture_ptr_free(void);
-
-void cfn_print_capture_ptr(void);
-
-void cfn_check_memory_leak(void);
-
-void cfn_init_default_config();
-void cfn_quit();
-
-#ifdef CFN_IMPL
-#undef malloc
-#undef calloc
-#undef realloc
-#undef free
-
-#include <assert.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 static CdebugPtrInfo *cfn_capture_ptr      = NULL;
 static size_t         cfn_capture_ptr_size = 0;
@@ -91,7 +98,7 @@ static void _cfn_capture_ptr_append_if_not_exist(void *mem, const char *file, si
     _cfn_capture_ptr_append(mem, file, line, size);
 }
 
-void *cfn_malloc(size_t size, const char *file, int line) {
+void *_cfn_malloc(size_t size, const char *file, int line) {
     void *mem = malloc(size);
 
     if (cfn_config.print_malloc) {
@@ -107,7 +114,7 @@ void *cfn_malloc(size_t size, const char *file, int line) {
     return mem;
 }
 
-void *cfn_calloc(size_t size, size_t size_type, const char *file, int line) {
+void *_cfn_calloc(size_t size, size_t size_type, const char *file, int line) {
     void *mem = calloc(size, size_type);
 
     if (cfn_config.print_calloc) {
@@ -123,7 +130,7 @@ void *cfn_calloc(size_t size, size_t size_type, const char *file, int line) {
     return mem;
 }
 
-void *cfn_realloc(void *old_mem, size_t size, const char *file, int line) {
+void *_cfn_realloc(void *old_mem, size_t size, const char *file, int line) {
     void *mem = realloc(old_mem, size);
 
     if (cfn_config.print_realloc) {
@@ -159,7 +166,7 @@ void *cfn_realloc(void *old_mem, size_t size, const char *file, int line) {
     return mem;
 }
 
-void cfn_free(void *mem, const char *file, int line) {
+void _cfn_free(void *mem, const char *file, int line) {
     if (cfn_config.print_calloc) {
         fprintf(cfn_config.out, "CFN (free): deallocating at %x in %s:%zu\n", mem, file,
                 line);
@@ -244,9 +251,9 @@ void cfn_quit() {
 
 #endif // CFN_IMPL
 
-#define malloc(size)            cfn_malloc(size, __FILE__, __LINE__)
-#define calloc(size, size_type) cfn_calloc(size, size_type, __FILE__, __LINE__)
-#define realloc(mem, size)      cfn_realloc(mem, size, __FILE__, __LINE__)
-#define free(mem)               cfn_free(mem, __FILE__, __LINE__)
+#define malloc(size)            _cfn_malloc(size, __FILE__, __LINE__)
+#define calloc(size, size_type) _cfn_calloc(size, size_type, __FILE__, __LINE__)
+#define realloc(mem, size)      _cfn_realloc(mem, size, __FILE__, __LINE__)
+#define free(mem)               _cfn_free(mem, __FILE__, __LINE__)
 
 #endif // CFN_H

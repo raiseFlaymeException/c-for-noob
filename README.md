@@ -7,7 +7,7 @@ A usefull library that help debuggin memory related bug, helped me multiple time
 
 - [Install](#install)
 - [Usage](#usage)
-- [Example](#example-readmes)
+- [Example](#example)
 - [Maintainers](#maintainers)
 - [Contributing](#contributing)
 - [License](#license)
@@ -17,13 +17,19 @@ A usefull library that help debuggin memory related bug, helped me multiple time
 compile and run the test program:
 ```cmd
 make run
+
+```
+or
+
+```cmd
+gcc -o main.c main.exe
 ```
 
 the library is in the folder [src/include/c_for_noob](src/include/c_for_noob)
 
 ## Usage
 
-I try to comment stuff in the example and in the library to make it easier
+I try to comment stuff in the [example](#example) and in the library to make it easier
 
 ```c
 #define CFN_IMPL 
@@ -37,7 +43,9 @@ int main(int argc, char *argv[]) {
 
     // ...
 
-    cfn_quit(); // need to be called to free internal thing and to create some output
+    cfn_quit(); // need to be called to free internal thing and to create some output 
+                // like for example a check of memory leak (see cfn_test.txt)
+    fclose(cfn_config.out); // cfn_config.out does not closed itself
     return 0;
 }
 
