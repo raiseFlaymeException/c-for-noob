@@ -19,7 +19,7 @@ compile and run the test program:
 make run
 ```
 
-the library is in the folder [src\include\c_for_noob](src\include\c_for_noob)
+the library is in the folder [src/include/c_for_noob](src/include/c_for_noob)
 
 ## Usage
 
