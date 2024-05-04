@@ -22,7 +22,7 @@ make run
 or
 
 ```cmd
-gcc -o main.c main.exe -L src/include
+gcc -o main.c main.exe -I src/include
 ```
 
 the library is in the folder [src/include/c_for_noob](src/include/c_for_noob)
